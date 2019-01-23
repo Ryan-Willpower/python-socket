@@ -1,19 +1,29 @@
 import socket
+import threading
+import sys
 
-HOST = 'localhost'
-PORT = 50000
-server_addr = (HOST, PORT)
+def thread_rx():
+    while True:
+        data = s.recv(1024).decode()
+        if data: print(f'server: {data}')
+        if not data: continue
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    print(f'Connecting to {HOST}:{PORT}')
-    s.connect(server_addr)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = '127.0.0.1'
+port = 50000
+s.connect((host, port))
+print(f'> Welcome to chat server | connected at {host}:{port}\n')
 
-    try:
-        while True:
-            message = input('Send some message: ')
-            s.sendall(message.encode())
-            data = s.recv(1024).decode()
-            print(f'Server send: {data}')
-    finally:
-        print('Connection close')
-        s.close()
+t = threading.Thread(target=thread_rx)
+t.start()
+
+try:
+    while True:
+        sent = input("")
+        s.send(str(sent).encode())
+except AssertionError:
+    pass
+finally:
+    s.close()
+    t._stop()
+    sys.exit()

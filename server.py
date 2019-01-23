@@ -1,26 +1,35 @@
 import socket
-from time import sleep
+import threading
+import sys
 
-HOST = ''
-PORT = 50000
-server_addr = (HOST, PORT)
-
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind(server_addr)
-    print(f'Server listening at {HOST}:{PORT}')
-    s.listen(10)
-
+def thread_rx():
     while True:
-        print('Waiting for connection...')
-        conn, addr = s.accept()
-        try:
-            print(f'Connected from {addr}')
-            while True:
-                data = conn.recv(1024).decode()
-                if data:
-                    print(f'Client: {data}')
-                    message = input('Send message: ')
-                    conn.sendall(message.encode())
-        finally:
-            print('Connection close')
-            conn.close()    
+        data = con.recv(1024).decode()
+        if data: print(f'client: {data}')
+        if not data: continue
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = '127.0.0.1'
+port = 50000
+
+s.bind((host, port))
+s.listen(10)
+
+print("Server Started")
+print("Waiting...")
+
+con, address = s.accept()
+print(f'> client connected from {address}\n')
+t = threading.Thread(target=thread_rx)
+t.start()
+
+try:
+    while True:
+        message = input('')
+        con.sendall(message.encode())
+except AssertionError:
+    pass
+finally:
+    con.close()
+    t._stop()
+    sys.exit()
